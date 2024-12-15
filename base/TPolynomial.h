@@ -4,16 +4,23 @@
 #include <algorithm>
 #include <sstream>
 #include <map>
+#include <cmath>
+#include <iostream>
+#include <regex>
 
 using namespace std;
+
+bool alph(char c) {
+	return (c == 'x' || c == 'y' || c == 'z');
+}
 
 class TPolinomial {
 	struct TMonomial // 0-monomial is 0x^10y^0z^0
 	{
-		short degree;
+		int degree;
 		int coef;
 
-		TMonomial(short dg=1000, int cf=0) : degree(dg), coef(cf) {}
+		TMonomial(int dg=1000, int cf=0) : degree(dg), coef(cf) {}
 		bool operator<(const TMonomial& m) const {
 			return degree < m.degree;
 		}
@@ -22,33 +29,62 @@ class TPolinomial {
 	{
 		TMonomial monom;
 		Node* pNext = nullptr;
-		Node(short dg=1000, int cf=0) : monom(dg, cf) {}
+		Node(int dg = 1000, int cf = 0) : monom(dg, cf) {}
 	};
 	Node* pFirst;
 
-	int check(string& polynom) { // TODO
 
-		// check without ^ (2x2y3 - 4z3) TODO
-		return 1; // это если норм строка в виде без ^
+	int check(string polynom) { // TODO
 
-		// check with ^ TODO
-		return 2; // это если норм строка в виде с ^
+		polynom.erase(std::remove(polynom.begin(), polynom.end(), ' '), polynom.end());
 
-		throw "bad string"; // это если строка не полином или не соответсвует ограничени€м
+		std::regex pattern1(R"(^([+-]?\d*(x[0-9]?)?(y[0-9]?)?(z[0-9]?)?)([+-]\d*(x[0-9]?)?(y[0-9]?)?(z[0-9]?)?)*$)");
+
+		if (regex_match(polynom, pattern1)) {
+			return 1; // valid polynomial without ^
+		}
+
+		std::regex pattern2(R"(^([+-]?\d*(x(\^[0-9])?)?(y(\^[0-9])?)?(z(\^[0-9])?))([+-]\d*(x(\^[0-9])?)?(y(\^[0-9])?)?(z(\^[0-9])?))?$)");
+		if (regex_match(polynom, pattern2)) {
+			return 2; // valid polynomial with ^
+		}
+
+		throw invalid_argument("String is not polynomial"); // not polynomial
+	}
+	TPolinomial(Node* n): pFirst(n) {}
+	void del() {
+		Node* p;
+		while (pFirst != nullptr) {
+			p = pFirst;
+			pFirst = p->pNext;
+			delete p;
+		}
 	}
 public:
-	TPolinomial(string s) {
+	TPolinomial(string s="") {
+		string tmp = "";
+		for (auto x : s) {
+			if (x == '+') {
+				tmp += " + ";
+			}
+			else if (x == '-') {
+				tmp += " - ";
+			}
+			else {
+				tmp += x;
+			}
+		}
+		s = tmp;
 		int mode = check(s); // 1 - polynomial without ^; 2 - polynomial with ^
 
-
-		vector<TMonomial> tmp;
-		map<short, int> mp; // мапа из степени в коэф
+		map<int, int> mp; // мапа из степени в коэф
 
 		stringstream ss(s);
 		string token;
 		int znak = 1;
 
 		while (getline(ss, token, ' ')) {
+			if (token == "") continue;
 			if (token == "+") {
 				znak = 1;
 			}
@@ -56,7 +92,7 @@ public:
 				znak = -1;
 			}
 			else {
-				short degree = 0;
+				int degree = 0;
 				string coef;
 
 				if (mode == 1) {
@@ -130,22 +166,21 @@ public:
 					}
 				}
 
-				if (coef == "") coef = 1;
+				if (coef == "") coef = "1";
 				mp[degree] += stoi(coef) * znak;
 			}
 		}
 
-		if (mp.size() == 0) return;
+		//if (mp.size() == 0) return;
 
-		vector<pair<short, int>> mpcopy;
+		vector<pair<int, int>> mpcopy;
 		for (auto x : mp) 
 			if (x.second != 0)
 				mpcopy.push_back(x);
 		reverse(mpcopy.begin(), mpcopy.end());
 
-		pFirst = new Node();
-
-		Node* pcur = pFirst;
+		Node* pcur = new Node();
+		Node* pf = pcur;
 
 		for (auto x : mpcopy) {
 			Node* pnew = new Node(x.first, x.second);
@@ -153,11 +188,259 @@ public:
 			pcur = pnew;
 		}
 
-		for (Node* pcur = pFirst; pcur != nullptr; pcur = pcur->pNext) { // тестовый проход, ”ƒјЋ»“№
-			int g = 142;
-		}
-	}
-	~TPolinomial() { // TODO
+		pFirst = pf;
 
+	}
+	TPolinomial(const TPolinomial& pol) {
+		Node* pf = new Node();
+		Node* pcur = pf, *pcurpol = pol.pFirst->pNext;
+		while (pcurpol != nullptr) {
+			Node* pn = new Node(pcurpol->monom.degree, pcurpol->monom.coef);
+			pcur->pNext = pn;
+			pcur = pn;
+			pcurpol = pcurpol->pNext;
+		}
+		pFirst = pf;
+	}
+
+	TPolinomial operator+(const TPolinomial& pol) {
+		Node* p1 = pFirst, *p2 = pol.pFirst;
+		Node* npFirst = new Node();
+		Node* pcur = npFirst;
+		while (p1 != nullptr || p2 != nullptr) {
+			int deg1 = -1, deg2 = -1, coef1 = 0, coef2 = 0;
+
+			if (p1 != nullptr) {
+				deg1 = p1->monom.degree;
+				coef1 = p1->monom.coef;
+			}
+			if (p2 != nullptr) {
+				deg2 = p2->monom.degree;
+				coef2 = p2->monom.coef;
+			}
+
+			int degres, coefres;
+
+			if (deg1 == deg2) { // 0-monomial is already created
+				if (deg1 == 1000) {
+					if (p1 != nullptr)
+						p1 = p1->pNext;
+					if (p2 != nullptr)
+						p2 = p2->pNext;
+					continue;
+				}
+				degres = deg1;
+				coefres = coef1 + coef2;
+				if (p1 != nullptr)
+					p1 = p1->pNext;
+				if (p2 != nullptr)
+					p2 = p2->pNext;
+			}
+			else if (deg1 > deg2) {
+				degres = deg1;
+				coefres = coef1;
+				p1 = p1->pNext;
+			}
+			else {
+				degres = deg2;
+				coefres = coef2;
+				p2 = p2->pNext;
+			}
+
+			if (coefres == 0) continue;
+
+			Node* pnew = new Node(degres, coefres);
+			pcur->pNext = pnew;
+			pcur = pnew;
+		}
+
+		TPolinomial res(npFirst);
+		return res;
+	}
+	TPolinomial operator-(const TPolinomial& pol) { // не чекал
+		Node* p1 = pFirst, * p2 = pol.pFirst;
+		Node* npFirst = new Node();
+		Node* pcur = npFirst;
+		while (p1 != nullptr || p2 != nullptr) {
+			int deg1 = -1, deg2 = -1, coef1 = 0, coef2 = 0;
+
+			if (p1 != nullptr) {
+				deg1 = p1->monom.degree;
+				coef1 = p1->monom.coef;
+			}
+			if (p2 != nullptr) {
+				deg2 = p2->monom.degree;
+				coef2 = p2->monom.coef;
+			}
+
+			int degres, coefres;
+
+			if (deg1 == deg2) { // 0-monomial is already created
+				if (deg1 == 1000) {
+					if (p1 != nullptr)
+						p1 = p1->pNext;
+					if (p2 != nullptr)
+						p2 = p2->pNext;
+					continue;
+				}
+				degres = deg1;
+				coefres = coef1 - coef2;
+				if (p1 != nullptr)
+					p1 = p1->pNext;
+				if (p2 != nullptr)
+					p2 = p2->pNext;
+			}
+			else if (deg1 > deg2) {
+				degres = deg1;
+				coefres = coef1;
+				p1 = p1->pNext;
+			}
+			else {
+				degres = deg2;
+				coefres = -coef2;
+				p2 = p2->pNext;
+			}
+
+			if (coefres == 0) continue;
+
+			Node* pnew = new Node(degres, coefres);
+			pcur->pNext = pnew;
+			pcur = pnew;
+		}
+
+		TPolinomial res(npFirst);
+		return res;
+	}
+	TPolinomial operator*(double c) {
+		TPolinomial res(*this);
+		Node* p = res.pFirst;
+		while (p != nullptr) {
+			p->monom.coef *= c;
+			p = p->pNext;
+		}
+		return res;
+	}
+	TPolinomial& operator=(const TPolinomial& pol) {
+		del();
+		Node* pf = new Node();
+		Node* pcur = pf, * pcurpol = pol.pFirst->pNext;
+		while (pcurpol != nullptr) {
+			Node* pn = new Node(pcurpol->monom.degree, pcurpol->monom.coef);
+			pcur->pNext = pn;
+			pcur = pn;
+			pcurpol = pcurpol->pNext;
+		}
+		pFirst = pf;
+		return *this;
+	}
+	TPolinomial& operator=(TPolinomial&& pol) {
+		del();
+		pFirst = pol.pFirst;
+		pol.pFirst = nullptr;
+		return *this;
+	}
+	bool operator==(const TPolinomial& pol) {
+		Node* p1 = pFirst, * p2 = pol.pFirst;
+		while (p1 != nullptr && p2 != nullptr) {
+			if (p1->monom.degree != p2->monom.degree || p1->monom.coef != p2->monom.coef) {
+				return false;
+			}
+			p1 = p1->pNext;
+			p2 = p2->pNext;
+		}
+		if (p1 != p2) return false;
+		return true;
+	}
+	bool operator!=(const TPolinomial& pol) {
+		return !((*this) == pol);
+	}
+
+	double calculate(double x, double y, double z) {
+		Node* p = pFirst;
+		double res = 0.0;
+		while (p != nullptr) {
+			if (p->monom.degree == 1000) {
+				p = p->pNext;
+				continue;
+			}
+
+			double mon = 1.0;
+			mon *= p->monom.coef;
+			mon *= pow(x, (p->monom.degree / 100));
+			mon *= pow(y, (p->monom.degree / 10 % 10));
+			mon *= pow(z, (p->monom.degree % 10));
+
+			res += mon;
+			p = p->pNext;
+		}
+
+		return res;
+	}
+
+	string getstring() const {
+		Node* p = pFirst;
+		string res;
+		bool isfirst = true;
+		while (p != nullptr) {
+			bool neg = false;
+			int deg = p->monom.degree;
+			if (deg == 1000) {
+				p = p->pNext;
+				continue;
+			}
+			int coef = p->monom.coef;
+			if (coef < 0) {
+				neg = true;
+				coef = abs(coef);
+			}
+			string s;
+			if (coef != 1 || deg == 0)
+				s += to_string(coef);
+			if (deg / 100 != 0) {
+				s += 'x';
+				if (deg / 100 != 1)
+					s += to_string(deg / 100);
+			}
+			if (deg / 10 % 10 != 0) {
+				s += 'y';
+				if (deg / 10 % 10 != 1)
+					s += to_string(deg / 10 % 10);
+			}
+			if (deg % 10 != 0) {
+				s += 'z';
+				if (deg % 10 != 1)
+					s += to_string(deg % 10);
+			}
+			if (isfirst)
+				if (!neg)
+					res += s + ' ';
+				else
+					res += '-' + s + ' ';
+			else
+				if (!neg)
+					res += "+ " + s + ' ';
+				else
+					res += "- " + s + ' ';
+			p = p->pNext;
+			isfirst = false;
+		}
+		return res;
+	}
+
+	friend ostream& operator<<(ostream& os, const TPolinomial& pol) {
+		os << pol.getstring();
+		return os;
+	}
+
+	friend istream& operator>>(istream& is, TPolinomial& pol) {
+		string s;
+		getline(is, s);
+		TPolinomial tmp(s);
+		pol = tmp;
+		return is;
+	}
+
+	~TPolinomial() {
+		del(); // ? проверить бы
 	}
 };
