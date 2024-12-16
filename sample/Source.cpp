@@ -25,9 +25,10 @@ int main() {
 	cout << "\"-\" - difference of two polinomials\n";
 	cout << "\"*\" - product of polinomial and constant value\n";
 	cout << "---------------------------------------------------------------\n";
-	cout << "Enter \"pol\" if you want to add polynomial to memory.\nEnter \"op\" if you want to start performing operations with polinomials.\nEnter \"eop\" if you want to step back.\n";
-	cout << "Enter \"browse\" if you want to browse polynomials in memory.\n";
-	cout << "Enter \"calc\" if you want to calculate polynomial value at a point.\n";
+	cout << "Enter \"pol\" to add polynomial to memory.\nEnter \"op\" to start performing operations with polinomials.\nEnter \"eop\" to step back.\n";
+	cout << "Enter \"browse\" to browse polynomials in memory.\n";
+	cout << "Enter \"calc\" to calculate polynomial value at a point.\n";
+	cout << "Enter \"help\" to see commands.\n";
 	v.resize(1000);
 
 	while (true) {
@@ -301,6 +302,18 @@ int main() {
 			double res = v[i].calculate(x, y, z);
 			opres.push_back(res);
 			cout << "Result of calculation #" << opres.size() << "(this calculation): " << res << '\n';
+		}
+		else if (s == "help") {
+			cout << "---------------------------------------------------------------\n";
+			cout << "Keywords and corresponding types of operations:\n";
+			cout << "\"+\" - sum of two polinomials\n";
+			cout << "\"-\" - difference of two polinomials\n";
+			cout << "\"*\" - product of polinomial and constant value\n";
+			cout << "---------------------------------------------------------------\n";
+			cout << "Enter \"pol\" to add polynomial to memory.\nEnter \"op\" to start performing operations with polinomials.\nEnter \"eop\" to step back.\n";
+			cout << "Enter \"browse\" to browse polynomials in memory.\n";
+			cout << "Enter \"calc\" to calculate polynomial value at a point.\n";
+			cout << "Enter \"help\" to see commands.\n";
 		}
 	}
 

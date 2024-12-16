@@ -1,3 +1,5 @@
+#define _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
+
 // Copyright 2005, Google Inc.
 // All rights reserved.
 //
@@ -8,7 +10,7 @@
 //     * Redistributions of source code must retain the above copyright
 // notice, this list of conditions and the following disclaimer.
 //     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
+// copyright notice, this list of conditions and the following disclaimer 
 // in the documentation and/or other materials provided with the
 // distribution.
 //     * Neither the name of Google Inc. nor the names of its
@@ -48,8 +50,8 @@
 // registration from Barthelemy Dagenais' (barthelemy@prologique.com)
 // easyUnit framework.
 
-#define _VARIADIC_MAX 10
 #define _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
+#define _VARIADIC_MAX 10
 
 #ifndef GTEST_INCLUDE_GTEST_GTEST_H_
 #define GTEST_INCLUDE_GTEST_GTEST_H_

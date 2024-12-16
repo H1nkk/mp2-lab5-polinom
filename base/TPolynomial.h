@@ -34,7 +34,7 @@ class TPolinomial {
 	Node* pFirst;
 
 
-	int check(string polynom) { // TODO
+	int check(string polynom) const {
 
 		polynom.erase(std::remove(polynom.begin(), polynom.end(), ' '), polynom.end());
 
@@ -203,7 +203,62 @@ public:
 		pFirst = pf;
 	}
 
-	TPolinomial operator+(const TPolinomial& pol) {
+	string getString() const {
+		Node* p = pFirst;
+		string res;
+		bool isfirst = true;
+		while (p != nullptr) {
+			bool neg = false;
+			int deg = p->monom.degree;
+			if (deg == 1000) {
+				p = p->pNext;
+				continue;
+			}
+			int coef = p->monom.coef;
+			if (coef < 0) {
+				neg = true;
+				coef = abs(coef);
+			}
+			string s;
+			if (coef != 1 || deg == 0)
+				s += to_string(coef);
+			if (deg / 100 != 0) {
+				s += 'x';
+				if (deg / 100 != 1)
+					s += to_string(deg / 100);
+			}
+			if (deg / 10 % 10 != 0) {
+				s += 'y';
+				if (deg / 10 % 10 != 1)
+					s += to_string(deg / 10 % 10);
+			}
+			if (deg % 10 != 0) {
+				s += 'z';
+				if (deg % 10 != 1)
+					s += to_string(deg % 10);
+			}
+			if (isfirst)
+				if (!neg)
+					res += s + ' ';
+				else
+					res += '-' + s + ' ';
+			else
+				if (!neg)
+					res += "+ " + s + ' ';
+				else
+					res += "- " + s + ' ';
+			p = p->pNext;
+			isfirst = false;
+		}
+		if (res.length() > 0) {
+			if (res[res.size() - 1] == ' ') {
+				res = res.substr(0, res.size() - 1);
+			}
+		}
+		return res;
+	}
+
+	TPolinomial operator+(const TPolinomial& pol) const  {
 		Node* p1 = pFirst, *p2 = pol.pFirst;
 		Node* npFirst = new Node();
 		Node* pcur = npFirst;
@@ -257,7 +312,11 @@ public:
 		TPolinomial res(npFirst);
 		return res;
 	}
-	TPolinomial operator-(const TPolinomial& pol) { // íå ÷åêàë
+	TPolinomial& operator+=(const TPolinomial& pol) {
+		*this = *this + pol;
+		return *this;
+	}
+	TPolinomial operator-(const TPolinomial& pol) const  { // íå ÷åêàë
 		Node* p1 = pFirst, * p2 = pol.pFirst;
 		Node* npFirst = new Node();
 		Node* pcur = npFirst;
@@ -311,7 +370,11 @@ public:
 		TPolinomial res(npFirst);
 		return res;
 	}
-	TPolinomial operator*(double c) {
+	TPolinomial& operator-=(const TPolinomial& pol) {
+		*this = *this - pol;
+		return *this;
+	}
+	TPolinomial operator*(double c) const { // ÀÀÀÀÀÀÀÀÀÀÀÀÀ ìîæåò èçåíèòü double íà int ( åñëè êîýôû double )
 		TPolinomial res(*this);
 		Node* p = res.pFirst;
 		while (p != nullptr) {
@@ -339,7 +402,7 @@ public:
 		pol.pFirst = nullptr;
 		return *this;
 	}
-	bool operator==(const TPolinomial& pol) {
+	bool operator==(const TPolinomial& pol) const {
 		Node* p1 = pFirst, * p2 = pol.pFirst;
 		while (p1 != nullptr && p2 != nullptr) {
 			if (p1->monom.degree != p2->monom.degree || p1->monom.coef != p2->monom.coef) {
@@ -351,11 +414,11 @@ public:
 		if (p1 != p2) return false;
 		return true;
 	}
-	bool operator!=(const TPolinomial& pol) {
+	bool operator!=(const TPolinomial& pol) const {
 		return !((*this) == pol);
 	}
 
-	double calculate(double x, double y, double z) {
+	double calculate(double x, double y, double z) const {
 		Node* p = pFirst;
 		double res = 0.0;
 		while (p != nullptr) {
@@ -377,58 +440,8 @@ public:
 		return res;
 	}
 
-	string getstring() const {
-		Node* p = pFirst;
-		string res;
-		bool isfirst = true;
-		while (p != nullptr) {
-			bool neg = false;
-			int deg = p->monom.degree;
-			if (deg == 1000) {
-				p = p->pNext;
-				continue;
-			}
-			int coef = p->monom.coef;
-			if (coef < 0) {
-				neg = true;
-				coef = abs(coef);
-			}
-			string s;
-			if (coef != 1 || deg == 0)
-				s += to_string(coef);
-			if (deg / 100 != 0) {
-				s += 'x';
-				if (deg / 100 != 1)
-					s += to_string(deg / 100);
-			}
-			if (deg / 10 % 10 != 0) {
-				s += 'y';
-				if (deg / 10 % 10 != 1)
-					s += to_string(deg / 10 % 10);
-			}
-			if (deg % 10 != 0) {
-				s += 'z';
-				if (deg % 10 != 1)
-					s += to_string(deg % 10);
-			}
-			if (isfirst)
-				if (!neg)
-					res += s + ' ';
-				else
-					res += '-' + s + ' ';
-			else
-				if (!neg)
-					res += "+ " + s + ' ';
-				else
-					res += "- " + s + ' ';
-			p = p->pNext;
-			isfirst = false;
-		}
-		return res;
-	}
-
 	friend ostream& operator<<(ostream& os, const TPolinomial& pol) {
-		os << pol.getstring();
+		os << pol.getString();
 		return os;
 	}
 
@@ -438,6 +451,10 @@ public:
 		TPolinomial tmp(s);
 		pol = tmp;
 		return is;
+	}
+
+	friend TPolinomial operator*(double c, const TPolinomial& pol) { // ÀÀÀÀÀÀÀÀÀÀÀÀÀ ìá íå äàáë?
+		return (pol * c);
 	}
 
 	~TPolinomial() {
