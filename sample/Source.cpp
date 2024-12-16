@@ -14,7 +14,7 @@ void browse() {
 	}
 	cout << "List of calculation results:\n";
 	for (int i = 0; i < opres.size(); i++) {
-		cout << "Calculation " << i + 1 << " result: " << opres[i];
+		cout << "Calculation " << i + 1 << " result: " << opres[i] << '\n';
 	}
 }
 
@@ -29,6 +29,8 @@ int main() {
 	cout << "Enter \"browse\" to browse polynomials in memory.\n";
 	cout << "Enter \"calc\" to calculate polynomial value at a point.\n";
 	cout << "Enter \"help\" to see commands.\n";
+	cout << "Enter \"end\" to close the program.\n";
+
 	v.resize(1000);
 
 	while (true) {
@@ -43,6 +45,7 @@ int main() {
 					}
 					cout << "Enter the polinomial: ";
 					cin >> v[curpol];
+					cout << "Polynomial is stored in p" << curpol << '\n';
 					curpol++;
 					break;
 				}
@@ -314,9 +317,12 @@ int main() {
 			cout << "Enter \"browse\" to browse polynomials in memory.\n";
 			cout << "Enter \"calc\" to calculate polynomial value at a point.\n";
 			cout << "Enter \"help\" to see commands.\n";
+			cout << "Enter \"end\" to close the program.\n";
+		}
+		else if (s == "end") {
+			break;
 		}
 	}
-
 
 	return 0;
 }
