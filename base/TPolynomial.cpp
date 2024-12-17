@@ -437,7 +437,7 @@ istream& operator>>(istream& is, TPolinomial& pol) {
 	return is;
 }
 
-TPolinomial operator*(double c, const TPolinomial& pol) { // ¿¿¿¿¿¿¿¿¿¿¿¿¿ Ï· ÌÂ ‰‡·Î?
+TPolinomial operator*(double c, const TPolinomial& pol) {
 	return (pol * c);
 }
 
