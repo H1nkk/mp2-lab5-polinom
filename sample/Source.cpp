@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include "TPolynomial.h"
 
 using namespace std;
@@ -12,13 +13,20 @@ void browse() {
 	for (int i = 0; i < curpol; i++) {
 		cout << "p" << i << ": " << v[i] << '\n';
 	}
-	cout << "List of calculation results:\n";
-	for (int i = 0; i < opres.size(); i++) {
-		cout << "Calculation " << i + 1 << " result: " << opres[i] << '\n';
+	if (opres.size() != 0) {
+		cout << "List of calculation results:\n";
+		for (int i = 0; i < opres.size(); i++) {
+			cout << "Calculation #" << i + 1 << " result: " << opres[i] << '\n';
+		}
+	}
+	else {
+		cout << "Calculations have not been performed yet.\n";
 	}
 }
 
 int main() {
+	cout << std::defaultfloat;
+
 	cout << "---------------------------------------------------------------\n";
 	cout << "Keywords and corresponding types of operations:\n";
 	cout << "\"+\" - sum of two polinomials\n";
@@ -26,7 +34,7 @@ int main() {
 	cout << "\"*\" - product of polinomial and constant value\n";
 	cout << "---------------------------------------------------------------\n";
 	cout << "Enter \"pol\" to add polynomial to memory.\nEnter \"op\" to start performing operations with polinomials.\nEnter \"eop\" to step back.\n";
-	cout << "Enter \"browse\" to browse polynomials in memory.\n";
+	cout << "Enter \"browse\" to browse polynomials in memory. Also shows list of calculation results.\n";
 	cout << "Enter \"calc\" to calculate polynomial value at a point.\n";
 	cout << "Enter \"help\" to see commands.\n";
 	cout << "Enter \"end\" to close the program.\n";
@@ -117,7 +125,8 @@ int main() {
 					if (s == "eop") break;
 
 					v[curpol] = v[i1] + v[i2];
-					cout << "Result is stored in p" << curpol << '\n';
+					cout << "Result: " << v[curpol] << '\n';
+					cout << "Result is stored in p" << curpol << ".\n";
 					curpol++;
 				}
 
@@ -168,7 +177,8 @@ int main() {
 					if (s == "eop") break;
 
 					v[curpol] = v[i1] - v[i2];
-					cout << "Result is stored in p" << curpol << '\n';
+					cout << "Result: " << v[curpol] << '\n';
+					cout << "Result is stored in p" << curpol << ".\n";
 					curpol++;
 				}
 
@@ -217,7 +227,8 @@ int main() {
 					if (s == "eop") break;
 
 					v[curpol] = v[i1] * cns;
-					cout << "Result is stored in p" << curpol << '\n';
+					cout << "Result: " << v[curpol] << '\n';
+					cout << "Result is stored in p" << curpol << ".\n";
 					curpol++;
 				}
 			}
@@ -314,7 +325,7 @@ int main() {
 			cout << "\"*\" - product of polinomial and constant value\n";
 			cout << "---------------------------------------------------------------\n";
 			cout << "Enter \"pol\" to add polynomial to memory.\nEnter \"op\" to start performing operations with polinomials.\nEnter \"eop\" to step back.\n";
-			cout << "Enter \"browse\" to browse polynomials in memory.\n";
+			cout << "Enter \"browse\" to browse polynomials in memory. Also shows list of calculation results.\n";
 			cout << "Enter \"calc\" to calculate polynomial value at a point.\n";
 			cout << "Enter \"help\" to see commands.\n";
 			cout << "Enter \"end\" to close the program.\n";

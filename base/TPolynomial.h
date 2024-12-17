@@ -14,16 +14,16 @@ class TPolinomial {
 	struct TMonomial // 0-monomial is 0x^10y^0z^0
 	{
 		int degree;
-		int coef;
+		double coef;
 
-		TMonomial(int dg=1000, int cf=0) : degree(dg), coef(cf) {}
-		bool operator<(const TMonomial& m) const { return degree < m.degree; }
+		TMonomial(int dg=1000, double cf=0.0) : degree(dg), coef(cf) {}
+		bool operator<(const TMonomial& m) const { return degree < m.degree || ( degree == m.degree && coef < m.coef ); }
 	};
 	struct Node
 	{
 		TMonomial monom;
 		Node* pNext = nullptr;
-		Node(int dg = 1000, int cf = 0) : monom(dg, cf) {}
+		Node(int dg = 1000, double cf = 0) : monom(dg, cf) {}
 	};
 	Node* pFirst;
 

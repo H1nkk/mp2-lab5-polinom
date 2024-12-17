@@ -4,13 +4,12 @@ int TPolinomial::check(string polynom) const {
 
 	polynom.erase(std::remove(polynom.begin(), polynom.end(), ' '), polynom.end());
 
-	std::regex pattern1(R"(^([+-]?\d*(x[0-9]?)?(y[0-9]?)?(z[0-9]?)?)([+-]\d*(x[0-9]?)?(y[0-9]?)?(z[0-9]?)?)*$)");
-
+	std::regex pattern1(R"(^$|^(([+-]?(\d+(\.\d+)?|))?(x([0-9])?)?(y([0-9])?)?(z([0-9])?)?)([+-](\d+(\.\d+)?|)?(x([0-9])?)?(y([0-9])?)?(z([0-9])?)?)*$)");
 	if (regex_match(polynom, pattern1)) {
 		return 1; // valid polynomial without ^
 	}
 
-	std::regex pattern2(R"(^([+-]?\d*(x(\^[0-9])?)?(y(\^[0-9])?)?(z(\^[0-9])?))([+-]\d*(x(\^[0-9])?)?(y(\^[0-9])?)?(z(\^[0-9])?))?$)");
+	std::regex pattern2(R"(^$|^(([+-]?(\d+(\.\d+)?|))?(x(\^\d{1})?)?(y(\^\d{1})?)?(z(\^\d{1})?)?)([+-](\d+(\.\d+)?|)?(x(\^\d{1})?)?(y(\^\d{1})?)?(z(\^\d{1})?)?)*$)");
 	if (regex_match(polynom, pattern2)) {
 		return 2; // valid polynomial with ^
 	}
@@ -43,7 +42,7 @@ TPolinomial::TPolinomial(string s) {
 	s = tmp;
 	int mode = check(s); // 1 - polynomial without ^; 2 - polynomial with ^
 
-	map<int, int> mp; // мапа из степени в коэф
+	map<int, double> mp; // degree, coef
 
 	stringstream ss(s);
 	string token;
@@ -133,11 +132,11 @@ TPolinomial::TPolinomial(string s) {
 			}
 
 			if (coef == "") coef = "1";
-			mp[degree] += stoi(coef) * znak;
+			mp[degree] += stod(coef) * znak;
 		}
 	}
 
-	vector<pair<int, int>> mpcopy;
+	vector<pair<int, double>> mpcopy;
 	for (auto x : mp)
 		if (x.second != 0)
 			mpcopy.push_back(x);
@@ -172,7 +171,7 @@ TPolinomial::TPolinomial(const TPolinomial& pol) {
 string TPolinomial::getString() const {
 	Node* p = pFirst;
 	string res;
-	bool isfirst = true;
+	bool isfirst = true, iszero = true;
 	while (p != nullptr) {
 		bool neg = false;
 		int deg = p->monom.degree;
@@ -180,14 +179,18 @@ string TPolinomial::getString() const {
 			p = p->pNext;
 			continue;
 		}
-		int coef = p->monom.coef;
+		iszero = false;
+		double coef = p->monom.coef;
 		if (coef < 0) {
 			neg = true;
-			coef = abs(coef);
+			coef = fabs(coef);
 		}
 		string s;
-		if (coef != 1 || deg == 0)
-			s += to_string(coef);
+		if (coef != 1.0 || deg == 0) {
+			ostringstream oss;
+			oss << std::defaultfloat << coef;
+			s += oss.str();
+		}
 		if (deg / 100 != 0) {
 			s += 'x';
 			if (deg / 100 != 1)
@@ -221,6 +224,9 @@ string TPolinomial::getString() const {
 			res = res.substr(0, res.size() - 1);
 		}
 	}
+	if (iszero) {
+		return "0";
+	}
 	return res;
 }
 
@@ -229,8 +235,8 @@ TPolinomial TPolinomial::operator+(const TPolinomial & pol) const {
 	Node* npFirst = new Node();
 	Node* pcur = npFirst;
 	while (p1 != nullptr || p2 != nullptr) {
-		int deg1 = -1, deg2 = -1, coef1 = 0, coef2 = 0;
-
+		int deg1 = -1, deg2 = -1;
+		double coef1 = 0, coef2 = 0;
 		if (p1 != nullptr) {
 			deg1 = p1->monom.degree;
 			coef1 = p1->monom.coef;
@@ -240,7 +246,8 @@ TPolinomial TPolinomial::operator+(const TPolinomial & pol) const {
 			coef2 = p2->monom.coef;
 		}
 
-		int degres, coefres;
+		int degres;
+		double coefres;
 
 		if (deg1 == deg2) { // 0-monomial is already created
 			if (deg1 == 1000) {
@@ -285,12 +292,13 @@ TPolinomial& TPolinomial::operator+=(const TPolinomial& pol) {
 	return *this;
 }
 
-TPolinomial TPolinomial::operator-(const TPolinomial& pol) const { // не чекал
+TPolinomial TPolinomial::operator-(const TPolinomial& pol) const {
 	Node* p1 = pFirst, * p2 = pol.pFirst;
 	Node* npFirst = new Node();
 	Node* pcur = npFirst;
 	while (p1 != nullptr || p2 != nullptr) {
-		int deg1 = -1, deg2 = -1, coef1 = 0, coef2 = 0;
+		int deg1 = -1, deg2 = -1;
+		double coef1 = 0, coef2 = 0;
 
 		if (p1 != nullptr) {
 			deg1 = p1->monom.degree;
@@ -301,7 +309,8 @@ TPolinomial TPolinomial::operator-(const TPolinomial& pol) const { // не чекал
 			coef2 = p2->monom.coef;
 		}
 
-		int degres, coefres;
+		int degres;
+		double coefres;
 
 		if (deg1 == deg2) { // 0-monomial is already created
 			if (deg1 == 1000) {
@@ -345,7 +354,7 @@ TPolinomial& TPolinomial::operator-=(const TPolinomial& pol) {
 	return *this;
 }
 
-TPolinomial TPolinomial::operator*(double c) const { // јјјјјјјјјјјјј может изенить double на int ( если коэфы double )
+TPolinomial TPolinomial::operator*(double c) const {
 	TPolinomial res(*this);
 	Node* p = res.pFirst;
 	while (p != nullptr) {
